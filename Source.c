@@ -7,21 +7,39 @@
 #define MAX_SIZE 5
 #define MAX_TILES (MAX_SIZE * MAX_SIZE)
 #define FOUND_STATE (-1)
-#define MAX_PATH_LEN 512
+#define MAX_PATH_LEN 16384
 
 static int goal_row[MAX_TILES];
 static int goal_col[MAX_TILES];
 
-static void print_board(const int *state, int size)
+static void write_separator(FILE *out, int size)
 {
+    int repeats = size * size;
+    for (int i = 0; i < repeats; ++i)
+    {
+        fputs("= ", out);
+    }
+    fputc('\n', out);
+}
+
+static void write_board(FILE *out, const int *state, int size)
+{
+    write_separator(out, size);
     for (int r = 0; r < size; ++r)
     {
-        printf("    ");
         for (int c = 0; c < size; ++c)
         {
-            printf("%4d", state[r * size + c]);
+            int value = state[r * size + c];
+            if (value == 0)
+            {
+                fputs("     ", out);
+            }
+            else
+            {
+                fprintf(out, "%5d", value);
+            }
         }
-        printf("\n");
+        fputc('\n', out);
     }
 }
 
@@ -236,19 +254,12 @@ int main(void)
 
     if (!is_solvable(initial, size))
     {
-        printf("Initial state:\n");
-        int printable[MAX_TILES];
-        for (int i = 0; i < total; ++i)
-        {
-            printable[i] = initial[i];
-        }
-        print_board(printable, size);
-        printf("\nThis puzzle is not solvable.\n");
+        fprintf(stderr, "This puzzle is not solvable.\n");
         return 0;
     }
 
     unsigned char work_state[MAX_TILES];
-    memcpy(work_state, initial, total);
+    memcpy(work_state, initial, (size_t)total * sizeof(unsigned char));
 
     int path[MAX_PATH_LEN];
     int solution_depth = ida_star(work_state, size, zero_index, path);
@@ -264,20 +275,22 @@ int main(void)
         current_state[i] = initial[i];
     }
 
-    const char *direction_words[] = {"up", "down", "left", "right"};
+    FILE *log = fopen("log.txt", "w");
+    if (!log)
+    {
+        fprintf(stderr, "Unable to open log file.\n");
+        return 1;
+    }
 
-    printf("Initial state:\n");
-    print_board(current_state, size);
-    printf("\n");
-
+    write_board(log, current_state, size);
     for (int i = 0; i < solution_depth; ++i)
     {
-        int dir = path[i];
-        printf("Move a tile %s.\n", direction_words[dir]);
-        apply_move(current_state, size, dir);
-        print_board(current_state, size);
-        printf("\n");
+        apply_move(current_state, size, path[i]);
+        write_board(log, current_state, size);
     }
+
+    fclose(log);
+    printf("Solution written to log.txt\n");
 
     return 0;
 }
