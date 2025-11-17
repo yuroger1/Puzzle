@@ -1,700 +1,321 @@
-#define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <stdlib.h>
-#define puzzle_maximum_size 3//puzzle size
-int stack[puzzle_maximum_size][puzzle_maximum_size];//puzzle size
-int outtype = 0;
-FILE* save_data;
-void fbr(FILE* br)
-{
-	fscanf(br, "%*[^\n]");
-	fscanf(br, "%*c");
-}
-void get_puzzle(FILE* data, int size)
-{
-	for (int i = 0; i != size; i++)
-	{
-		for (int j = 0; j != size; j++)
-		{
-			int tmp;
-			fscanf(data, "%d", &tmp);
-			fscanf(data, "%*c");
-			stack[i][j] = tmp;
-		}
-	}
-}
-void push_puzzle(FILE* data, int size)
-{
-	if (outtype == 0)
-	{
-		fprintf(data, "= = = = = = = = = = = = = = = = = = = = = = = = = = =\n");
-		for (int i = 0; i != size; i++)
-		{
-			for (int j = 0; j != size; j++)
-			{
-				int tmp = stack[i][j];
-				!tmp ? fprintf(data, "     ") : fprintf(data, "%5d", stack[i][j]);
-			}
-			fprintf(data, "\n");
-		}
-	}
-	if (outtype == 1)
-	{
-		fprintf(save_data, "= = = = = = = = = = = = = = = = = = = = = = = = = = =\n");
-		for (int i = 0; i != size; i++)
-		{
-			for (int j = 0; j != size; j++)
-			{
-				int tmp = stack[i][j];
-				!tmp ? fprintf(save_data, "     ") : fprintf(save_data, "%5d", stack[i][j]);
-			}
-			fprintf(save_data, "\n");
-		}
-	}
-}
-void targect_e(int find, int size, int distance[2])
-{
-	distance[0] = find / size;
-	distance[1] = find % size;
-	distance[1] --;
-}
-void find(int var, int size, int zero[2])
-{
-	for (int i = 0; i != size; i++)
-	{
-		for (int j = 0; j != size; j++)
-		{
-			if (stack[i][j] == var)
-			{
-				zero[0] = i;
-				zero[1] = j;
-			}
-		}
-	}
-}
-void swap(int action, int size)
-{
-	int zero[2];
-	find(0, size, zero);
-	int act = 0;
-	int tmp;
-	if (action == 56 || action == 1)//8
-	{
-		if (zero[0] == 0)
-		{
-			return 1;
-		}
-		tmp = stack[zero[0]][zero[1]];
-		stack[zero[0]][zero[1]] = stack[zero[0] - 1][zero[1]];
-		stack[zero[0] - 1][zero[1]] = tmp;
-	}
-	if (action == 53 || action == 2)//5
-	{
-		if (zero[0] == size - 1)
-		{
-			return 1;
-		}
-		tmp = stack[zero[0]][zero[1]];
-		stack[zero[0]][zero[1]] = stack[zero[0] + 1][zero[1]];
-		stack[zero[0] + 1][zero[1]] = tmp;
-	}
-	if (action == 52 || action == 3)//4
-	{
-		if (zero[1] == 0)
-		{
-			return 1;
-		}
-		tmp = stack[zero[0]][zero[1]];
-		stack[zero[0]][zero[1]] = stack[zero[0]][zero[1] - 1];
-		stack[zero[0]][zero[1] - 1] = tmp;
-	}
-	if (action == 54 || action == 4)//6
-	{
-		if (zero[1] == size - 1)
-		{
-			return 1;
-		}
-		find(0, size, zero);
-		tmp = stack[zero[0]][zero[1]];
-		stack[zero[0]][zero[1]] = stack[zero[0]][zero[1] + 1];
-		stack[zero[0]][zero[1] + 1] = tmp;
-	}
-	push_puzzle(stdout, size);
-}
-void go_to_r(int size, int column, int row)
-{
-	for (; row != 0;)
-	{
-		if (row > 0)
-		{
-			swap(4, size);
-			row--;
-		}
-		if (row < 0)
-		{
-			swap(3, size);
-			row++;
-		}
-	}
-	for (; column != 0;)
-	{
-		if (column < 0)
-		{
-			swap(2, size);
-			column++;
-		}
-		if (column > 0)
-		{
-			swap(1, size);
-			column--;
-		}
-	}
-}
-void go_to_c(int size, int column, int row)
-{
-	for (; column != 0;)
-	{
-		if (column < 0)
-		{
-			swap(2, size);
-			column++;
-		}
-		if (column > 0)
-		{
-			swap(1, size);
-			column--;
-		}
-	}
-	for (; row != 0;)
-	{
-		if (row > 0)
-		{
-			swap(4, size);
-			row--;
-		}
-		if (row < 0)
-		{
-			swap(3, size);
-			row++;
-		}
-	}
-}
-void swap_l(int size)
-{
-	int zero[2];
-	find(0, size, zero);
-	if (zero[0] == size - 1)
-	{
-		swap(1, size);
-		swap(3, size);
-		swap(3, size);
-		swap(2, size);
-		swap(4, size);
-	}
-	else
-	{
-		swap(2, size);
-		swap(3, size);
-		swap(3, size);
-		swap(1, size);
-		swap(4, size);
-	}
-}
-void swap_r(int size)
-{
-	int zero[2];
-	find(0, size, zero);
-	if (zero[0] == size - 1)
-	{
-		swap(1, size);
-		swap(4, size);
-		swap(4, size);
-		swap(2, size);
-		swap(3, size);
-	}
-	else
-	{
-		swap(2, size);
-		swap(4, size);
-		swap(4, size);
-		swap(1, size);
-		swap(3, size);
-	}
-}
-void swap_u(int size)
-{
-	swap(4, size);
-	swap(1, size);
-	swap(1, size);
-	swap(3, size);
-	swap(2, size);
-}
-void swap_d(int size)
-{
-	swap(4, size);
-	swap(2, size);
-	swap(2, size);
-	swap(3, size);
-	swap(1, size);
-}
-void move_r(int var, int size)
-{
-	int distance[2];
-	int zero[2];
-	int source[2];
-	int moving;
-	//debug
-	targect_e(var, size, distance);
-	find(0, size, zero);
-	find(var, size, source);
-	moving = distance[1] - source[1];
-	if (moving > 0)
-	{
-		if (zero[0] == source[0] && zero[1] <= source[1] && moving != 0)
-		{
-			swap(2, size);
-			targect_e(var, size, distance);
-			find(0, size, zero);
-			find(var, size, source);
-		}
-		int a = zero[0] - source[0];
-		int b = source[1] - zero[1] + 1;
-		go_to_r(size, a, b);
-		swap(3, size);
-		moving--;
-	}
-	if (moving < 0)
-	{
-		if (zero[0] == source[0] && zero[1] >= source[1] && moving != 0)
-		{
-			swap(2, size);
-			targect_e(var, size, distance);
-			find(0, size, zero);
-			find(var, size, source);
-		}
-		go_to_r(size, zero[0] - source[0], (source[1] - 1) - zero[1]);
-		swap(4, size);
-		moving++;
-	}
-	for (; moving != 0;)
-	{
-		if (moving > 0)
-		{
-			swap_r(size);
-			moving--;
-		}
-		if (moving < 0)
-		{
-			swap_l(size);
-			moving++;
-		}
-	}
-}
-void move_c(int var, int size)
-{
-	int distance[2];
-	int zero[2];
-	int source[2];
-	int moving;
-	targect_e(var, size, distance);
-	find(0, size, zero);
-	find(var, size, source);
-	moving = distance[0] - source[0];
-	if (moving == 0 && !(distance[0] == source[0]))
-	{
-		for (; size - 1 == zero[1];)
-		{
-			swap(4, size);
-			targect_e(var, size, distance);
-			find(0, size, zero);
-			find(var, size, source);
-		}
-		return 1;
-	}
-	if (moving == 0)
-	{
-		swap(2, size);
-	}
-	if (moving != 0)
-	{
-		if (zero[0] == source[0])
-		{
-			if (source[0] != size - 1)
-			{
-				swap(2, size);
-				swap(4, size);
-				swap(4, size);
-				swap(1, size);
-				targect_e(var, size, distance);
-				find(0, size, zero);
-				find(var, size, source);
-				moving = distance[0] - source[0];
-			}
-			else
-			{
-				swap(1, size);
-				targect_e(var, size, distance);
-				find(0, size, zero);
-				find(var, size, source);
-				moving = distance[0] - source[0];
-			}
-		}
-	}
-	if (moving != 0)
-	{
-		if (zero[1] <= source[1] && zero[0] >= source[0])
-		{
-			for (; zero[1] != size - 1;)
-			{
-				swap(4, size);
-				find(0, size, zero);
-			}
-			targect_e(var, size, distance);
-			find(var, size, source);
-		}
-	}
-	if (moving > 0)
-	{
-		go_to_c(size, zero[0] - source[0] - 1, zero[1] - source[1]);
-		swap(1, size);
-		moving--;
-	}
-	if (moving < 0)
-	{
-		go_to_c(size, zero[0] - source[0] + 1, source[1] - zero[1]);
-		swap(2, size);
-		moving++;
-	}
-	for (; moving != 0;)
-	{
-		if (moving > 0)
-		{
-			swap_d(size);
-			moving--;
-		}
-		if (moving < 0)
-		{
-			swap_u(size);
-			moving++;
-		}
-	}
-}
-void push_in_line(int var, int size, int zero[2])
-{
-	find(0, size, zero);
-	int goal[2];
-	goal[0] = var / size;
-	goal[1] = 0;
-	find(0, size, zero);
-	go_to_r(size, zero[0] - goal[0], -(zero[1]));
-	swap(1, size);
-	for (int i = 0; i != size - 2; i++)
-	{
-		swap(4, size);
-	}
-	swap(2, size);
-	swap(4, size);
-	swap(1, size);
-	for (int i = 0; i != size - 1; i++)
-	{
-		swap(3, size);
-	}
-	swap(2, size);
-}
-void move_r_size(int var, int size)
-{
-	swap(2, size);
-	int distance[2];
-	int zero[2];
-	int source[2];
-	int moving;
-	distance[0] = var / size;
-	distance[1] = size - 2;
-	find(0, size, zero);
-	find(var, size, source);
-	moving = distance[1] - source[1];
-	if (moving > 0)
-	{
-		if (zero[0] == source[0] && zero[1] < source[1])
-		{
-			if (zero[0] == size - 1)
-			{
-				swap(1, size);
-			}
-			else
-			{
-				swap(2, size);
-				swap(4, size);
-				swap(4, size);
-				swap(1, size);
-			}
-			distance[0] = var / size;
-			distance[1] = size - 2;
-			find(0, size, zero);
-			find(var, size, source);
-		}
-		int a = zero[0] - source[0];
-		int b = -(zero[1] - source[1] - 1);
-		go_to_r(size, a, b);
-		swap(3, size);
-		moving--;
-	}
-	if (moving < 0)
-	{
-		if (zero[0] == source[0] && zero[1] > source[1])
-		{
-			if (zero[0] == size - 1)
-			{
-				swap(1, size);
-			}
-			else
-			{
-				swap(2, size);
-				swap(3, size);
-				swap(3, size);
-				swap(1, size);
-			}
-			distance[0] = var / size;
-			distance[1] = size - 2;
-			find(0, size, zero);
-			find(var, size, source);
-		}
-		go_to_r(size, zero[0] - source[0], (source[1] - 1) - zero[1]);
-		swap(4, size);
-		moving++;
-	}
-	for (; moving != 0;)
-	{
-		if (moving > 0)
-		{
-			swap_r(size);
-			moving--;
-		}
-		if (moving < 0)
-		{
-			swap_l(size);
-			moving++;
-		}
-	}
-}
-void move_c_size(int var, int size)
-{
-	int distance[2];
-	int zero[2];
-	int source[2];
-	int moving;
-	distance[0] = var / size;
-	distance[1] = size - 2;
-	find(0, size, zero);
-	find(var, size, source);
-	moving = distance[0] - source[0];
-	if (zero[0] != size - 1 && source[0] == zero[0])
-	{
-		swap(2, size);
-		swap(4, size);
-		swap(4, size);
-		swap(1, size);
-		targect_e(var, size, distance);
-		find(0, size, zero);
-		find(var, size, source);
-		moving = distance[0] - source[0];
-	}
-	if (moving > 0)
-	{
+#include <string.h>
+#include <stdbool.h>
 
-		go_to_c(size, zero[0] - source[0] - 1, zero[1] - source[1]);
-		swap(1, size);
-		moving--;
-	}
-	if (moving < 0)
-	{
-		if (source[0] < zero[0] && source[1] == zero[1])
-		{
-			swap(4, size);
-			targect_e(var, size, distance);
-			find(0, size, zero);
-			find(var, size, source);
-		}
-		go_to_c(size, zero[0] - source[0] + 1, source[1] - zero[1]);
-		swap(2, size);
-		moving++;
-	}
-	for (; moving != 0;)
-	{
-		if (moving > 0)
-		{
-			swap_d(size);
-			moving--;
-		}
-		if (moving < 0)
-		{
-			swap_u(size);
-			moving++;
-		}
-	}
-	swap(2, size);
-}
-void norval(int var, int size)
-{
-	move_r(var, size);
-	move_c(var, size);
-}
-void special(int var, int size)
-{
-	int distance[2], zero[2], source[2];
-	intf("special\n");
-	find(0, size, zero);
-	find(var, size, source);
-	distance[0] = (var / size) - 1;
-	distance[1] = size - 1;
-	if (distance[0] != source[0] || source[1] != distance[1])
-	{
-		move_r_size(var, size);
-		move_c_size(var, size);
-		int zero[2];
-		find(0, size, zero);
-		push_in_line(var, size, zero);
-	}
+#define MAX_SIZE 3
+#define MAX_TILES (MAX_SIZE * MAX_SIZE)
+#define MAX_STATES 400000
+#define HASH_SIZE 1048576
 
-}
-void circle(int size, int n)
-{
-	swap(1, size);
-	for (int i = 0; i != n; i++)
-	{
-		swap(3, size);
-	}
-	swap(2, size);
-	for (int i = 0; i != n; i++)
-	{
-		swap(4, size);
-	}
-}
-void circle_rev(int size, int n)
-{
-	for (int i = 0; i != n; i++)
-	{
-		swap(3, size);
-	}
-	swap(1, size);
-	for (int i = 0; i != n; i++)
-	{
-		swap(4, size);
-	}
-	swap(2, size);
-}
-void swup_up(int size)
-{
-	swap(3, size);
-	swap(1, size);
-	swap(4, size);
-	swap(2, size);
-	swap(4, size);
-	swap(1, size);
-	swap(3, size);
-	swap(2, size);
-	swap(3, size);
-	swap(1, size);
-	swap(4, size);
-	swap(2, size);
-	swap(4, size);
-	swap(1, size);
-	swap(3, size);
-	swap(2, size);
-	swap(4, size);
-	swap(1, size);
-	swap(3, size);
-	swap(3, size);
-	swap(2, size);
-	swap(4, size);
-	swap(4, size);
-	swap(1, size);
-	swap(3, size);
-	swap(3, size);
-	swap(2, size);
-	swap(4, size);
-}
-int main()
-{
-	printf("Choose output location\n(0: screen 1: log.txt else Do not show)\n?");
-	scanf("%d", &outtype);
-	//outtype = 0;
-	if (outtype == 1)
-	{
-		save_data = fopen("log.txt", "w");
-	}
-	FILE* data;
-	data = fopen("puzzle.csv", "r");
-	int size = 0;
-	fscanf(data, "%d", &size);
-	if (size > puzzle_maximum_size)
-	{
-		printf("size is too big");
-		return 1;
-	}
-	fbr(data);
-	get_puzzle(data, size);
-	fclose(data);
-	push_puzzle(stdout, size);
-	//define
-	for (int var = 1; var != (size * (size - 2)) + 1; var++)
-	{
-		/*if (var == 15)
-		{
-			puts(" ");
-		}*/
-		var% size == 0 ? special(var, size) : norval(var, size);
-	}
-	int target[3];
-	target[0] = (size * (size - 2)) + 1;
-	target[1] = target[0] + size;
-	target[2] = 0;
-	int zero[2], goal[2];
-	for (; target[2] != size - 2; target[2]++)
-	{
-		find(0, size, zero);
-		go_to_c(size, 0 - (size - zero[0] - 1), size - zero[1] - 1);
-		targect_e(target[0], size, goal);
-		for (; target[1] != stack[goal[0]][goal[1]];)
-		{
-			circle(size, (size - target[2]) - 1);
-		}
-		if (target[0] != stack[goal[0] + 1][goal[1]])
-		{
-			for (; target[0] != stack[goal[0]][goal[1] + 1];)
-			{
-				circle(size, size - target[2] - 2);
-			}
-			circle_rev(size, size - target[2] - 1);
-		}
-		else
-		{
-			for (int i = 0; i != size - target[2] - 2; i++)
-			{
-				swap(3, size);
-			}
-			swup_up(size);
-			for (int i = 0; i != size - target[2] - 2; i++)
-			{
-				swap(4, size);
-			}
-		}
+typedef struct {
+    int prev;
+    int move;
+} Node;
 
-		target[0]++;
-		target[1]++;
-	}
+typedef struct {
+    unsigned long long key;
+    int value;
+    bool used;
+} HashEntry;
 
-	for (; stack[size - 2][size - 2] != target[0];)
-	{
-		swap(1, size);
-		swap(3, size);
-		swap(2, size);
-		swap(4, size);
-	}
-	if (outtype == 1)
-	{
-		fclose(save_data);
-	}
-	system("pause");
-	return 0;
+static unsigned char *states;
+static Node *nodes;
+static int *queue_indices;
+static HashEntry *hash_table;
+
+static unsigned long long encode_state(const unsigned char *state, int total)
+{
+    unsigned long long key = 0ULL;
+    for (int i = 0; i < total; ++i)
+    {
+        key = (key << 5) + state[i];
+    }
+    return key;
+}
+
+static int hash_lookup(unsigned long long key)
+{
+    unsigned long long idx = key % HASH_SIZE;
+    while (hash_table[idx].used)
+    {
+        if (hash_table[idx].key == key)
+        {
+            return hash_table[idx].value;
+        }
+        idx = (idx + 1) % HASH_SIZE;
+    }
+    return -1;
+}
+
+static void hash_insert(unsigned long long key, int value)
+{
+    unsigned long long idx = key % HASH_SIZE;
+    while (hash_table[idx].used)
+    {
+        idx = (idx + 1) % HASH_SIZE;
+    }
+    hash_table[idx].used = true;
+    hash_table[idx].key = key;
+    hash_table[idx].value = value;
+}
+
+static bool is_solvable(const unsigned char *state, int size)
+{
+    int total = size * size;
+    int inversions = 0;
+    for (int i = 0; i < total; ++i)
+    {
+        if (state[i] == 0)
+        {
+            continue;
+        }
+        for (int j = i + 1; j < total; ++j)
+        {
+            if (state[j] != 0 && state[i] > state[j])
+            {
+                inversions++;
+            }
+        }
+    }
+    if (size % 2 == 1)
+    {
+        return inversions % 2 == 0;
+    }
+    int zero_row_from_bottom = 0;
+    for (int i = 0; i < total; ++i)
+    {
+        if (state[i] == 0)
+        {
+            zero_row_from_bottom = size - (i / size);
+            break;
+        }
+    }
+    return (inversions + zero_row_from_bottom) % 2 == 0;
+}
+
+static void print_board(const int *state, int size)
+{
+    for (int r = 0; r < size; ++r)
+    {
+        printf("    ");
+        for (int c = 0; c < size; ++c)
+        {
+            printf("%4d", state[r * size + c]);
+        }
+        printf("\n");
+    }
+}
+
+static void apply_move(int *state, int size, int move)
+{
+    int total = size * size;
+    int zero_index = 0;
+    for (int i = 0; i < total; ++i)
+    {
+        if (state[i] == 0)
+        {
+            zero_index = i;
+            break;
+        }
+    }
+    int row = zero_index / size;
+    int col = zero_index % size;
+    int swap_index = zero_index;
+    switch (move)
+    {
+        case 0: // up
+            swap_index = (row - 1) * size + col;
+            break;
+        case 1: // down
+            swap_index = (row + 1) * size + col;
+            break;
+        case 2: // left
+            swap_index = row * size + (col - 1);
+            break;
+        case 3: // right
+            swap_index = row * size + (col + 1);
+            break;
+    }
+    int tmp = state[zero_index];
+    state[zero_index] = state[swap_index];
+    state[swap_index] = tmp;
+}
+
+static int bfs(const unsigned char *start_state, unsigned long long goal_key, int size)
+{
+    int total = size * size;
+    memcpy(states, start_state, total);
+    nodes[0].prev = -1;
+    nodes[0].move = -1;
+    queue_indices[0] = 0;
+    int front = 0;
+    int back = 1;
+    int state_count = 1;
+    unsigned long long start_key = encode_state(start_state, total);
+    hash_insert(start_key, 0);
+    const int moves[4][2] = {
+        {-1, 0}, // up
+        {1, 0},  // down
+        {0, -1}, // left
+        {0, 1}   // right
+    };
+    while (front < back)
+    {
+        int current_index = queue_indices[front++];
+        unsigned char *current_state = states + current_index * total;
+        unsigned long long current_key = encode_state(current_state, total);
+        if (current_key == goal_key)
+        {
+            return current_index;
+        }
+        int zero_index = 0;
+        for (int i = 0; i < total; ++i)
+        {
+            if (current_state[i] == 0)
+            {
+                zero_index = i;
+                break;
+            }
+        }
+        int row = zero_index / size;
+        int col = zero_index % size;
+        for (int dir = 0; dir < 4; ++dir)
+        {
+            int new_row = row + moves[dir][0];
+            int new_col = col + moves[dir][1];
+            if (new_row < 0 || new_row >= size || new_col < 0 || new_col >= size)
+            {
+                continue;
+            }
+            unsigned char temp[ MAX_TILES ];
+            memcpy(temp, current_state, total);
+            int swap_index = new_row * size + new_col;
+            unsigned char t = temp[zero_index];
+            temp[zero_index] = temp[swap_index];
+            temp[swap_index] = t;
+            unsigned long long key = encode_state(temp, total);
+            if (hash_lookup(key) != -1)
+            {
+                continue;
+            }
+            if (state_count >= MAX_STATES)
+            {
+                return -1;
+            }
+            unsigned char *dest = states + state_count * total;
+            memcpy(dest, temp, total);
+            nodes[state_count].prev = current_index;
+            nodes[state_count].move = dir;
+            hash_insert(key, state_count);
+            queue_indices[back++] = state_count;
+            if (key == goal_key)
+            {
+                return state_count;
+            }
+            state_count++;
+        }
+    }
+    return -1;
+}
+
+int main(void)
+{
+    int size;
+    if (scanf("%d", &size) != 1)
+    {
+        return 0;
+    }
+    if (size < 2 || size > MAX_SIZE)
+    {
+        fprintf(stderr, "Unsupported puzzle size.\n");
+        return 1;
+    }
+    int total = size * size;
+    unsigned char initial[MAX_TILES];
+    for (int i = 0; i < total; ++i)
+    {
+        int value;
+        if (scanf("%d", &value) != 1)
+        {
+            fprintf(stderr, "Invalid input.\n");
+            return 1;
+        }
+        initial[i] = (unsigned char)value;
+    }
+    unsigned char goal_state[MAX_TILES];
+    for (int i = 0; i < total - 1; ++i)
+    {
+        goal_state[i] = (unsigned char)(i + 1);
+    }
+    goal_state[total - 1] = 0;
+    unsigned long long goal_key = encode_state(goal_state, total);
+
+    if (!is_solvable(initial, size))
+    {
+        printf("Initial state:\n");
+        int printable[MAX_TILES];
+        for (int i = 0; i < total; ++i)
+        {
+            printable[i] = initial[i];
+        }
+        print_board(printable, size);
+        printf("\nThis puzzle is not solvable.\n");
+        return 0;
+    }
+
+    states = calloc(MAX_STATES, total);
+    nodes = calloc(MAX_STATES, sizeof(Node));
+    queue_indices = calloc(MAX_STATES, sizeof(int));
+    hash_table = calloc(HASH_SIZE, sizeof(HashEntry));
+    if (!states || !nodes || !queue_indices || !hash_table)
+    {
+        fprintf(stderr, "Memory allocation failed.\n");
+        return 1;
+    }
+
+    int solution_index = bfs(initial, goal_key, size);
+    if (solution_index < 0)
+    {
+        fprintf(stderr, "Failed to find a solution.\n");
+        return 1;
+    }
+
+    int *moves = malloc(MAX_STATES * sizeof(int));
+    int move_count = 0;
+    int current = solution_index;
+    while (current != -1 && nodes[current].move != -1)
+    {
+        moves[move_count++] = nodes[current].move;
+        current = nodes[current].prev;
+    }
+
+    int current_state[MAX_TILES];
+    for (int i = 0; i < total; ++i)
+    {
+        current_state[i] = initial[i];
+    }
+
+    const char *direction_words[] = {"up", "down", "left", "right"};
+
+    printf("Initial state:\n");
+    print_board(current_state, size);
+    printf("\n");
+
+    for (int i = move_count - 1; i >= 0; --i)
+    {
+        int dir = moves[i];
+        printf("Move a tile %s.\n", direction_words[dir]);
+        apply_move(current_state, size, dir);
+        print_board(current_state, size);
+        printf("\n");
+    }
+
+    free(states);
+    free(nodes);
+    free(queue_indices);
+    free(hash_table);
+    free(moves);
+
+    return 0;
 }
